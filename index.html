@@ -20,6 +20,7 @@ button { background: transparent; border: 0; color: #bca6ae; font: 14px system-u
   h1 { font-size: 24px; }
   canvas { height: 70svh; min-height: 180px; }
 }
+button span { font-size: 30px; line-height: 1; }
 button:focus-visible { outline: 1px solid #eda9bc; border-radius: 4px; }
 </style>
 </head>
@@ -27,7 +28,7 @@ button:focus-visible { outline: 1px solid #eda9bc; border-radius: 4px; }
 <header><h1>ganz viel Erfolg my love &lt;3</h1></header>
 <canvas id="screen" role="img" aria-label="Ein Strauß rosa Lilien öffnet seine Blüten aus kleinen Schriftzeichen."></canvas>
 <main>
-<button type="button" onclick="document.getElementById('screen').click()">Noch einmal blühen lassen</button>
+<button type="button" aria-label="Noch einmal blühen lassen" title="Noch einmal blühen lassen" onclick="document.getElementById('screen').click()"><span aria-hidden="true">↻</span></button>
 </main>
 <script src="bouquet.js"></script>
 </body>
