@@ -532,7 +532,7 @@
 
   // ---------- loop ----------
   const S = buildScene();
-  let palette = 0;
+  let palette = 2;
   let t0 = performance.now();
   let last = 0;
 
