@@ -22,14 +22,19 @@ button { background: transparent; border: 0; color: #bca6ae; font: 14px system-u
 }
 button span { font-size: 30px; line-height: 1; }
 button:focus-visible { outline: 1px solid #eda9bc; border-radius: 4px; }
+[hidden] { display: none !important; }
+#cap { width: min(100%, 600px); height: auto; aspect-ratio: 5 / 3; min-height: 0; margin: 8vh auto; cursor: default; }
 </style>
 </head>
 <body>
 <header><h1>ganz viel Erfolg my love &lt;3</h1></header>
 <canvas id="screen" role="img" aria-label="Ein Strauß bunter Lilien öffnet seine Blüten aus kleinen Schriftzeichen."></canvas>
+<canvas id="cap" hidden role="img" aria-label="Ein drehender Doktorhut aus leuchtenden Schriftzeichen mit goldener Quaste."></canvas>
 <main>
 <button type="button" aria-label="Noch einmal blühen lassen" title="Noch einmal blühen lassen" onclick="document.getElementById('screen').click()"><span aria-hidden="true">↻</span></button>
 </main>
+<script src="schedule.js"></script>
 <script src="bouquet.js"></script>
+<script src="cap.js"></script>
 </body>
 </html>

@@ -532,31 +532,32 @@
 
   // ---------- loop ----------
   const S = buildScene();
-  let palette = 2;
+  let palette = window.flowerStage === 1 ? 0 : 2;
   let t0 = performance.now();
   let last = 0;
 
   function frame(now) {
     requestAnimationFrame(frame);
-    if (now - last < 1000 / FPS) return;
+    if (screen.hidden || document.hidden || now - last < 1000 / FPS) return;
     last = now;
     T = (now - t0) / 1000;
     render(S, PALETTES[palette]);
   }
 
   const replay = () => { t0 = performance.now(); };
-  window.addEventListener('resize', resize);
+  window.addEventListener('flower-stage', () => { palette = window.flowerStage === 1 ? 0 : 2; if (!screen.hidden) { resize(); replay(); } });
+  window.addEventListener('resize', () => { if (!screen.hidden) resize(); });
   screen.addEventListener('click', replay);
   window.addEventListener('keydown', (e) => {
     if (e.key === ' ' || e.key === 'r') replay();
-    if (e.key === 'p' || e.key === 'c') { palette = (palette + 1) % PALETTES.length; replay(); }
+
   });
 
   // ?t=8 starts 8s into the bloom, ?p=1 picks a palette
   const q = new URLSearchParams(location.search);
-  if (q.has('p')) palette = clamp(+q.get('p') | 0, 0, PALETTES.length - 1);
+
   if (q.has('t')) t0 = performance.now() - +q.get('t') * 1000;
 
-  resize();
+  if (!screen.hidden) resize();
   requestAnimationFrame(frame);
 })();
