@@ -3,7 +3,7 @@
   const canvas = document.getElementById('cap');
   const ctx = canvas.getContext('2d');
   const buffer = document.createElement('canvas');
-  buffer.width = 100; buffer.height = 60;
+  buffer.width = 100; buffer.height = 132;
   const b = buffer.getContext('2d', { willReadFrequently: true });
   const ramp = ' .:-=+*cxoaX#%&@';
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
@@ -18,7 +18,7 @@
       const X = x*c + z*s, Z = -x*s + z*c;
       return [50 + X*24, 27 + y*25 + Z*10 + (reduced.matches ? 0 : Math.sin(now / 1700) * .8), Z - y*.4];
     };
-    b.clearRect(0,0,100,60);
+    b.clearRect(0,0,100,132);
     const faces = [];
     const face = (points,color,outline = false,layer = 0) => {
       const p = points.map(project);
@@ -60,14 +60,44 @@
       b.quadraticCurveTo(tip[0]+sway+i*.5,tip[1]+3,tip[0]+sway+i*.65,tip[1]+6-Math.abs(i)*.3);b.stroke();
     }
     b.fillStyle='#ffe4a9';b.fillRect(tip[0]+sway-1,tip[1]-1,2,1.5);
+    // A white coat, with lapels, seams, pockets and buttons.
+    const polygon = (points, fill) => {
+      b.beginPath(); points.forEach(([x,y],i)=>i?b.lineTo(x,y):b.moveTo(x,y));
+      b.closePath(); b.fillStyle=fill; b.fill();
+    };
+    const cloth=b.createLinearGradient(25,85,73,125);
+    cloth.addColorStop(0,'#e7edf3');cloth.addColorStop(.5,'#a8bacb');cloth.addColorStop(1,'#e3e9f1');
+    polygon([[40,87],[30,91],[20,112],[28,116],[34,103],[32,129],[68,129],[66,103],[72,116],[80,112],[70,91],[60,87],[54,92],[46,92]],cloth);
+    polygon([[44,87],[50,96],[56,87],[54,114],[46,114]],'#354454');
+    polygon([[40,87],[46,91],[50,109],[39,98],[43,95]],'#f5f5ed');
+    polygon([[60,87],[54,91],[50,109],[61,98],[57,95]],'#dfeaf3');
+    b.strokeStyle='#73899e';b.lineWidth=.55;
+    b.beginPath();b.moveTo(50,109);b.lineTo(50,129);b.stroke();
+    for(const x of [36,57]) { b.strokeRect(x,113,7,7); }
+    b.strokeRect(57,101,6,5);
+    b.fillStyle='#6b8299';for(const y of [112,118,124]){b.beginPath();b.arc(52,y,.65,0,Math.PI*2);b.fill();}
+    // Stethoscope rotates around the same vertical axis and angle as the hat.
+    const scopePoint=(x,y,z=0)=>[50+(x*c+z*s)*23,58+y*22+(-x*s+z*c)*7];
+    const line=(points,color,width)=>{
+      b.beginPath();points.forEach(([x,y,z],i)=>{const p=scopePoint(x,y,z||0);i?b.lineTo(...p):b.moveTo(...p);});
+      b.strokeStyle=color;b.lineWidth=width;b.lineCap='round';b.lineJoin='round';b.stroke();
+    };
+    line([[-.27,0],[-.43,.08],[-.46,.42],[-.3,.67],[0,.75],[.3,.67],[.46,.42],[.43,.08],[.27,0]],'#d4e4f1',1.1);
+    const tube=[];
+    for(let i=0;i<=40;i++){const t=i/40; tube.push([.36*Math.sin(t*Math.PI*1.6),.75+t*.47,.08*Math.sin(t*Math.PI)]);}
+    line(tube,'#74bfc1',1.8);
+    const end=scopePoint(...tube[tube.length-1]);
+    b.fillStyle='#dbeaf2';b.beginPath();b.ellipse(end[0],end[1],Math.max(.8,2.8*Math.abs(c)),2.7,0,0,Math.PI*2);b.fill();
+    b.fillStyle='#628d9e';b.beginPath();b.ellipse(end[0],end[1],Math.max(.4,1.7*Math.abs(c)),1.6,0,0,Math.PI*2);b.fill();
+    for(const x of [-.27,.27]){const p=scopePoint(x,0);b.fillStyle='#9bd3d4';b.beginPath();b.arc(...p,1.2,0,Math.PI*2);b.fill();}
     const w=canvas.clientWidth,h=canvas.clientHeight,dpr=Math.min(devicePixelRatio||1,2);
     if(canvas.width!==Math.round(w*dpr)||canvas.height!==Math.round(h*dpr)){canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);}
     ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);
-    const cw=w/100,ch=h/60;
+    const cw=w/100,ch=h/132;
     ctx.font=`bold ${ch}px Menlo, Consolas, monospace`;ctx.textAlign='center';ctx.textBaseline='top';
-    const pixels=b.getImageData(0,0,100,60).data;
+    const pixels=b.getImageData(0,0,100,132).data;
     ctx.shadowBlur=3;
-    for(let y=0;y<60;y++)for(let x=0;x<100;x++){
+    for(let y=0;y<132;y++)for(let x=0;x<100;x++){
       const i=(y*100+x)*4;if(pixels[i+3]<60)continue;
       const r=pixels[i],g=pixels[i+1],blue=pixels[i+2];
       ctx.fillStyle=ctx.shadowColor=`rgb(${r},${g},${blue})`;
