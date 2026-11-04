@@ -3,7 +3,7 @@
   const canvas = document.getElementById('cap');
   const ctx = canvas.getContext('2d');
   const buffer = document.createElement('canvas');
-  buffer.width = 100; buffer.height = 132;
+  buffer.width = 200; buffer.height = 264;
   const b = buffer.getContext('2d', { willReadFrequently: true });
   const ramp = ' .:-=+*cxoaX#%&@';
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
@@ -18,6 +18,7 @@
       const X = x*c + z*s, Z = -x*s + z*c;
       return [50 + X*24, 27 + y*25 + Z*10 + (reduced.matches ? 0 : Math.sin(now / 1700) * .8), Z - y*.4];
     };
+    b.setTransform(2,0,0,2,0,0);
     b.clearRect(0,0,100,132);
     const faces = [];
     const face = (points,color,outline = false,layer = 0) => {
@@ -60,45 +61,57 @@
       b.quadraticCurveTo(tip[0]+sway+i*.5,tip[1]+3,tip[0]+sway+i*.65,tip[1]+6-Math.abs(i)*.3);b.stroke();
     }
     b.fillStyle='#ffe4a9';b.fillRect(tip[0]+sway-1,tip[1]-1,2,1.5);
-    // A white coat, with lapels, seams, pockets and buttons.
-    const polygon = (points, fill) => {
-      b.beginPath(); points.forEach(([x,y],i)=>i?b.lineTo(x,y):b.moveTo(x,y));
-      b.closePath(); b.fillStyle=fill; b.fill();
+    // Drape around an invisible neck: rear collar, two shoulders, hanging ends.
+    const scopePoint=([x,y,z])=>[50+(x*c+z*s)*25,54+y*25+(-x*s+z*c)*8];
+    const parts=[];
+    const curve=(a,d,e,f)=>Array.from({length:41},(_,i)=>{
+      const t=i/40,u=1-t;
+      return a.map((v,k)=>u*u*u*v+3*u*u*t*d[k]+3*u*t*t*e[k]+t*t*t*f[k]);
+    });
+    const strand=(points,width,metal=false)=>{
+      for(let i=1;i<points.length;i++){
+        const a=points[i-1],d=points[i];
+        parts.push({depth:-(a[0]+d[0])*.5*s+(a[2]+d[2])*.5*c,paint:()=>{
+          const p=scopePoint(a),q=scopePoint(d);
+          b.lineCap='round';
+          const stroke=(color,w,offset=0)=>{b.strokeStyle=color;b.lineWidth=w;b.beginPath();b.moveTo(p[0]+offset,p[1]);b.lineTo(q[0]+offset,q[1]);b.stroke();};
+          stroke(metal?'#435969':'#143f49',width+.6);
+          stroke(metal?'#b9cedc':'#398c94',width);
+          stroke(metal?'#eff8ff':'#78c9ca',width*.26,-width*.2);
+        }});
+      }
     };
-    const cloth=b.createLinearGradient(25,85,73,125);
-    cloth.addColorStop(0,'#e7edf3');cloth.addColorStop(.5,'#a8bacb');cloth.addColorStop(1,'#e3e9f1');
-    polygon([[40,87],[30,91],[20,112],[28,116],[34,103],[32,129],[68,129],[66,103],[72,116],[80,112],[70,91],[60,87],[54,92],[46,92]],cloth);
-    polygon([[44,87],[50,96],[56,87],[54,114],[46,114]],'#354454');
-    polygon([[40,87],[46,91],[50,109],[39,98],[43,95]],'#f5f5ed');
-    polygon([[60,87],[54,91],[50,109],[61,98],[57,95]],'#dfeaf3');
-    b.strokeStyle='#73899e';b.lineWidth=.55;
-    b.beginPath();b.moveTo(50,109);b.lineTo(50,129);b.stroke();
-    for(const x of [36,57]) { b.strokeRect(x,113,7,7); }
-    b.strokeRect(57,101,6,5);
-    b.fillStyle='#6b8299';for(const y of [112,118,124]){b.beginPath();b.arc(52,y,.65,0,Math.PI*2);b.fill();}
-    // Stethoscope rotates around the same vertical axis and angle as the hat.
-    const scopePoint=(x,y,z=0)=>[50+(x*c+z*s)*23,58+y*22+(-x*s+z*c)*7];
-    const line=(points,color,width)=>{
-      b.beginPath();points.forEach(([x,y,z],i)=>{const p=scopePoint(x,y,z||0);i?b.lineTo(...p):b.moveTo(...p);});
-      b.strokeStyle=color;b.lineWidth=width;b.lineCap='round';b.lineJoin='round';b.stroke();
-    };
-    line([[-.27,0],[-.43,.08],[-.46,.42],[-.3,.67],[0,.75],[.3,.67],[.46,.42],[.43,.08],[.27,0]],'#d4e4f1',1.1);
-    const tube=[];
-    for(let i=0;i<=40;i++){const t=i/40; tube.push([.36*Math.sin(t*Math.PI*1.6),.75+t*.47,.08*Math.sin(t*Math.PI)]);}
-    line(tube,'#74bfc1',1.8);
-    const end=scopePoint(...tube[tube.length-1]);
-    b.fillStyle='#dbeaf2';b.beginPath();b.ellipse(end[0],end[1],Math.max(.8,2.8*Math.abs(c)),2.7,0,0,Math.PI*2);b.fill();
-    b.fillStyle='#628d9e';b.beginPath();b.ellipse(end[0],end[1],Math.max(.4,1.7*Math.abs(c)),1.6,0,0,Math.PI*2);b.fill();
-    for(const x of [-.27,.27]){const p=scopePoint(x,0);b.fillStyle='#9bd3d4';b.beginPath();b.arc(...p,1.2,0,Math.PI*2);b.fill();}
+    // Continuous rubber tubing curls behind the neck then falls over the chest.
+    strand(curve([-.72,.6,.25],[-.9,-.05,-.3],[.9,-.05,-.3],[.72,.6,.25]),2.5);
+    strand(curve([.72,.6,.25],[.88,1.2,.45],[.65,1.65,.55],[.57,1.94,.58]),2.5);
+    strand(curve([-.72,.6,.25],[-.8,1.2,.5],[-.75,1.65,.65],[-.42,1.85,.65]),2.5);
+    // Y junction and two polished binaural tubes with inward-facing ear tips.
+    strand(curve([-.42,1.85,.65],[-.85,1.85,.65],[-1.05,1.48,.65],[-.98,1.16,.65]),1.45,true);
+    strand(curve([-.42,1.85,.65],[-.04,1.88,.65],[.08,1.5,.65],[-.02,1.18,.65]),1.45,true);
+    strand(curve([-.98,1.16,.65],[-.96,1.02,.65],[-.86,1.02,.65],[-.78,1.08,.65]),1.4,true);
+    strand(curve([-.02,1.18,.65],[-.05,1.04,.65],[-.14,1.03,.65],[-.22,1.1,.65]),1.4,true);
+    for(const x of [-.78,-.22])strand([[x,1.08,.65],[x+(x<-.5?.05:-.05),1.14,.65]],2.3);
+    // Diaphragm: concentric 3D rings retain their thickness when viewed edge-on.
+    const diskCenter=[.57,2.12,.62];
+    strand([[.57,1.94,.58],[.57,2.02,.62]],1.5,true);
+    for(let ring=0;ring<15;ring++){
+      const radius=.205-ring*.012;
+      const points=Array.from({length:65},(_,i)=>{
+        const a=i*Math.PI/32;
+        return [diskCenter[0]+Math.cos(a)*radius,diskCenter[1]+Math.sin(a)*radius,diskCenter[2]+ring*.002];
+      });
+      strand(points,ring<3?.8:.5, true);
+    }
+    parts.sort((a,d)=>a.depth-d.depth).forEach(part=>part.paint());
     const w=canvas.clientWidth,h=canvas.clientHeight,dpr=Math.min(devicePixelRatio||1,2);
     if(canvas.width!==Math.round(w*dpr)||canvas.height!==Math.round(h*dpr)){canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);}
     ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);
-    const cw=w/100,ch=h/132;
+    const cw=w/200,ch=h/264;
     ctx.font=`bold ${ch}px Menlo, Consolas, monospace`;ctx.textAlign='center';ctx.textBaseline='top';
-    const pixels=b.getImageData(0,0,100,132).data;
-    ctx.shadowBlur=3;
-    for(let y=0;y<132;y++)for(let x=0;x<100;x++){
-      const i=(y*100+x)*4;if(pixels[i+3]<60)continue;
+    const pixels=b.getImageData(0,0,200,264).data;
+    ctx.shadowBlur=1.5;
+    for(let y=0;y<264;y++)for(let x=0;x<200;x++){
+      const i=(y*200+x)*4;if(pixels[i+3]<60)continue;
       const r=pixels[i],g=pixels[i+1],blue=pixels[i+2];
       ctx.fillStyle=ctx.shadowColor=`rgb(${r},${g},${blue})`;
       ctx.fillText(ramp[Math.max(1,Math.round(Math.max(r,g,blue)/255*(ramp.length-1)))],(x+.5)*cw,y*ch);
